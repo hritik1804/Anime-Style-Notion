@@ -44,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     document.documentElement.style.setProperty('--accent-color', activeTheme.color);
     document.documentElement.style.setProperty('--accent-glow', activeTheme.glow);
+    document.documentElement.style.setProperty('--bg-image', `url(${activeTheme.backgroundImage})`);
   }, [activeTheme]);
 
   return (

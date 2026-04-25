@@ -1,11 +1,20 @@
 .sidebar {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  height: 100vh;
   width: 300px;
   background-color: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
-  z-index: 10;
+  z-index: 50;
+  box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.sidebar.open {
+  left: 0;
 }
 
 .sidebar-header {
@@ -292,4 +301,42 @@
 .theme-select option {
   background: var(--bg-sidebar);
   color: var(--text-primary);
+}
+
+.menu-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  background: var(--bg-sidebar);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 20;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.menu-btn:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.close-sidebar-btn {
+  display: flex;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+  z-index: 40;
 }

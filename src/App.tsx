@@ -1,6 +1,7 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotesProvider } from './context/NotesContext';
+import { AudioProvider } from './context/AudioContext';
 import { Sidebar } from './components/Sidebar';
 import { Editor } from './components/Editor';
 import { Login } from './components/Login';
@@ -24,9 +25,11 @@ const MainApp: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <MainApp />
-    </AuthProvider>
+    <AudioProvider>
+      <AuthProvider>
+        <MainApp />
+      </AuthProvider>
+    </AudioProvider>
   );
 };
 

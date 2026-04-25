@@ -36,7 +36,7 @@
 }
 
 .editor-header {
-  padding: 40px 60px 10px;
+  padding: 60px 60px 10px; /* More top padding for the fixed menu button */
   max-width: 900px;
   margin: 0 auto;
   width: 100%;
@@ -136,4 +136,14 @@
   border-radius: 3px;
   font-size: 0.9em;
   font-family: 'JetBrains Mono', monospace;
+}
+
+@media (max-width: 768px) {
+  .editor-body {
+    padding: 0 20px 40px;
+  }
+
+  .title-input {
+    font-size: 28px;
+  }
 }

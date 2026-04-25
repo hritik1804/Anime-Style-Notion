@@ -117,3 +117,10 @@
   background: var(--bg-sidebar);
   color: var(--text-primary);
 }
+
+@media (max-width: 480px) {
+  .login-box {
+    margin: 20px;
+    padding: 30px 20px;
+  }
+}
