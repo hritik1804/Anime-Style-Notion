@@ -1,5 +1,9 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
+import { useAuth } from './AuthContext';
+
+const API_URL = 'http://localhost:5001/api';
 
 export interface Folder {
   id: string;
@@ -12,7 +16,8 @@ export interface Note {
   title: string;
   content: string;
   createdAt: number;
-  folderId?: string; // Optional: if null, it's at the root level
+  updatedAt: number;
+  folderId?: string;
 }
 
 interface NotesContextType {
@@ -20,98 +25,122 @@ interface NotesContextType {
   folders: Folder[];
   activeNoteId: string | null;
   setActiveNoteId: (id: string | null) => void;
-  createNote: (folderId?: string) => Note;
-  updateNote: (id: string, updates: Partial<Note>) => void;
-  deleteNote: (id: string) => void;
-  createFolder: (name: string) => Folder;
-  deleteFolder: (id: string) => void;
+  createNote: (folderId?: string) => Promise<void>;
+  updateNote: (id: string, updates: Partial<Note>) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
+  createFolder: (name: string) => Promise<void>;
+  deleteFolder: (id: string) => Promise<void>;
+  loading: boolean;
 }
 
 const NotesContext = createContext<NotesContextType | undefined>(undefined);
 
 export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [notes, setNotes] = useState<Note[]>(() => {
-    const saved = localStorage.getItem('anime-notes');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const { token } = useAuth();
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const [folders, setFolders] = useState<Folder[]>(() => {
-    const saved = localStorage.getItem('anime-folders');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [activeNoteId, setActiveNoteId] = useState<string | null>(notes.length > 0 ? notes[0].id : null);
+  const fetchContent = useCallback(async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const [notesRes, foldersRes] = await Promise.all([
+        axios.get(`${API_URL}/notes`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/folders`, { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+      setNotes(notesRes.data);
+      setFolders(foldersRes.data);
+    } catch (err) {
+      console.error('Failed to fetch data');
+    } finally {
+      setLoading(false);
+    }
+  }, [token]);
 
   useEffect(() => {
-    localStorage.setItem('anime-notes', JSON.stringify(notes));
-  }, [notes]);
+    fetchContent();
+  }, [fetchContent]);
 
-  useEffect(() => {
-    localStorage.setItem('anime-folders', JSON.stringify(folders));
-  }, [folders]);
-
-  const createNote = (folderId?: string) => {
+  const createNote = async (folderId?: string) => {
+    const now = Date.now();
     const newNote: Note = {
       id: uuidv4(),
       title: 'Untitled Note',
       content: '',
-      createdAt: Date.now(),
+      createdAt: now,
+      updatedAt: now,
       folderId,
     };
-    setNotes((prev) => [newNote, ...prev]);
-    setActiveNoteId(newNote.id);
-    return newNote;
-  };
-
-  const updateNote = (id: string, updates: Partial<Note>) => {
-    setNotes((prev) =>
-      prev.map((note) => (note.id === id ? { ...note, ...updates } : note))
-    );
-  };
-
-  const deleteNote = (id: string) => {
-    setNotes((prev) => prev.filter((note) => note.id !== id));
-    if (activeNoteId === id) {
-      setActiveNoteId(null);
+    
+    try {
+      await axios.post(`${API_URL}/notes`, newNote, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotes(prev => [newNote, ...prev]);
+      setActiveNoteId(newNote.id);
+    } catch (err) {
+      console.error('Failed to create note');
     }
   };
 
-  const createFolder = (name: string) => {
-    const newFolder: Folder = {
-      id: uuidv4(),
-      name,
-      createdAt: Date.now(),
-    };
-    setFolders((prev) => [...prev, newFolder]);
-    return newFolder;
+  const updateNote = async (id: string, updates: Partial<Note>) => {
+    const updatedAt = Date.now();
+    try {
+      await axios.put(`${API_URL}/notes/${id}`, { ...updates, updatedAt }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotes(prev => prev.map(n => n.id === id ? { ...n, ...updates, updatedAt } : n));
+    } catch (err) {
+      console.error('Failed to update note');
+    }
   };
 
-  const deleteFolder = (id: string) => {
-    // Delete the folder
-    setFolders((prev) => prev.filter((folder) => folder.id !== id));
-    // Also delete all notes inside this folder
-    const notesToDelete = notes.filter(n => n.folderId === id).map(n => n.id);
-    setNotes((prev) => prev.filter((note) => note.folderId !== id));
-    
-    if (activeNoteId && notesToDelete.includes(activeNoteId)) {
-      setActiveNoteId(null);
+  const deleteNote = async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/notes/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setNotes(prev => prev.filter(n => n.id !== id));
+      if (activeNoteId === id) setActiveNoteId(null);
+    } catch (err) {
+      console.error('Failed to delete note');
+    }
+  };
+
+  const createFolder = async (name: string) => {
+    const newFolder: Folder = { id: uuidv4(), name, createdAt: Date.now() };
+    try {
+      await axios.post(`${API_URL}/folders`, newFolder, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFolders(prev => [...prev, newFolder]);
+    } catch (err) {
+      console.error('Failed to create folder');
+    }
+  };
+
+  const deleteFolder = async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/folders/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setFolders(prev => prev.filter(f => f.id !== id));
+      setNotes(prev => prev.filter(n => n.folderId !== id));
+      // Reset active note if it was in that folder
+      setActiveNoteId(prev => notes.find(n => n.id === prev)?.folderId === id ? null : prev);
+    } catch (err) {
+      console.error('Failed to delete folder');
     }
   };
 
   return (
-    <NotesContext.Provider
-      value={{
-        notes,
-        folders,
-        activeNoteId,
-        setActiveNoteId,
-        createNote,
-        updateNote,
-        deleteNote,
-        createFolder,
-        deleteFolder,
-      }}
-    >
+    <NotesContext.Provider value={{
+      notes, folders, activeNoteId, setActiveNoteId,
+      createNote, updateNote, deleteNote, createFolder, deleteFolder,
+      loading
+    }}>
       {children}
     </NotesContext.Provider>
   );
@@ -119,8 +148,6 @@ export const NotesProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
 export const useNotes = () => {
   const context = useContext(NotesContext);
-  if (context === undefined) {
-    throw new Error('useNotes must be used within a NotesProvider');
-  }
+  if (context === undefined) throw new Error('useNotes must be used within a NotesProvider');
   return context;
 };

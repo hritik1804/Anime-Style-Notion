@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useNotes } from '../context/NotesContext';
 import { useAuth } from '../context/AuthContext';
+import { useAudioContext } from '../context/AudioContext';
 import { CHARACTERS } from '../constants/themes';
-import { FileText, Plus, Trash2, LogOut, FolderPlus, Folder as FolderIcon, FolderOpen, ChevronRight, ChevronDown, Sparkles, Menu, X } from 'lucide-react';
+import { 
+  FileText, Plus, Trash2, LogOut, FolderPlus, 
+  Folder as FolderIcon, FolderOpen, ChevronRight, 
+  ChevronDown, Sparkles, Menu, X, Home, 
+  Volume2, VolumeX, User
+} from 'lucide-react';
 import './Sidebar.css';
 
-export const Sidebar: React.FC = () => {
+// Added a new prop to handle view switching
+interface SidebarProps {
+  currentView: 'home' | 'editor' | 'profile';
+  onViewChange: (view: 'home' | 'profile') => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ currentView, onViewChange }) => {
   const { notes, folders, activeNoteId, setActiveNoteId, createNote, deleteNote, createFolder, deleteFolder } = useNotes();
-  const { user, logout, activeTheme, setActiveTheme } = useAuth();
+  const { user, profile, logout, activeTheme, setActiveTheme } = useAuth();
+  const { playTheme, isMuted, toggleMute } = useAudioContext();
 
   // Track which folders are expanded
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
@@ -36,7 +49,6 @@ export const Sidebar: React.FC = () => {
   const handleCreateNote = (folderId?: string) => {
     createNote(folderId);
     if (folderId) {
-      // Ensure the folder is open so we can see the new note
       setExpandedFolders(prev => new Set(prev).add(folderId));
     }
   };
@@ -54,8 +66,7 @@ export const Sidebar: React.FC = () => {
     const found = CHARACTERS.find(c => c.id === e.target.value);
     if (found) {
       setActiveTheme(found);
-      const audio = new Audio(found.audio);
-      audio.play().catch(console.error);
+      if (!isMuted) playTheme(found.audio);
     }
   };
 
@@ -77,9 +88,18 @@ export const Sidebar: React.FC = () => {
 
       <div className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div className="user-info">
-            <div className="user-avatar">{user?.charAt(0).toUpperCase()}</div>
-            <span className="user-name">{user}</span>
+          <div className="user-info" onClick={() => onViewChange('profile')} style={{cursor: 'pointer'}}>
+            <div className="user-avatar">
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="avatar" className="avatar-img" />
+              ) : (
+                user?.charAt(0).toUpperCase()
+              )}
+            </div>
+            <div className="user-details">
+              <span className="user-name">{profile?.fullName || user}</span>
+              <span className="user-rank">{profile?.rank || 'Shinigami'}</span>
+            </div>
           </div>
           <div style={{display: 'flex', gap: '5px'}}>
             <button className="icon-btn logout-btn" onClick={logout} title="Logout">
@@ -89,6 +109,29 @@ export const Sidebar: React.FC = () => {
               <X size={20} />
             </button>
           </div>
+        </div>
+
+        <div className="sidebar-nav">
+          <button 
+            className={`nav-item ${currentView === 'home' ? 'active' : ''}`} 
+            onClick={() => {
+              setActiveNoteId(null);
+              onViewChange('home');
+            }}
+          >
+            <Home size={18} />
+            <span>Home</span>
+          </button>
+          <button 
+            className={`nav-item ${currentView === 'profile' ? 'active' : ''}`} 
+            onClick={() => {
+              setActiveNoteId(null);
+              onViewChange('profile');
+            }}
+          >
+            <User size={18} />
+            <span>Profile</span>
+          </button>
         </div>
 
         <div className="sidebar-actions">
@@ -169,7 +212,6 @@ export const Sidebar: React.FC = () => {
             );
           })}
 
-          {/* Render Root Notes */}
           <div className="root-notes">
             {rootNotes.map((note) => (
               <div
@@ -192,20 +234,29 @@ export const Sidebar: React.FC = () => {
         </div>
 
         <div className="sidebar-footer">
-          <div className="theme-selector-wrapper">
-            <Sparkles size={14} className="theme-icon" />
-            <select 
-              className="theme-select"
-              value={activeTheme.id}
-              onChange={handleThemeChange}
-              title="Change Aura"
+          <div className="sidebar-footer-row">
+            <button 
+              className="icon-btn mute-toggle" 
+              onClick={toggleMute}
+              title={isMuted ? "Unmute" : "Mute"}
             >
-              {CHARACTERS.map(char => (
-                <option key={char.id} value={char.id}>
-                  {char.name}
-                </option>
-              ))}
-            </select>
+              {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+            <div className="theme-selector-wrapper">
+              <Sparkles size={14} className="theme-icon" />
+              <select 
+                className="theme-select"
+                value={activeTheme.id}
+                onChange={handleThemeChange}
+                title="Change Aura"
+              >
+                {CHARACTERS.map(char => (
+                  <option key={char.id} value={char.id}>
+                    {char.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
       </div>
