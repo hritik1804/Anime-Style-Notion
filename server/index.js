@@ -178,7 +178,7 @@ app.put('/api/user/profile', authenticateToken, async (req, res) => {
 // Initialize DB and start server
 initDb().then((database) => {
   db = database;
-  server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+  server.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server running on all interfaces at port ${PORT}`);
   });
 });
