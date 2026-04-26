@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Clock, Globe } from 'lucide-react';
 import './Editor.css';
 
-const API_URL = 'http://localhost:5001/api';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
 
 export const SharedNote: React.FC<{ noteId: string }> = ({ noteId }) => {
   const [note, setNote] = useState<any>(null);
