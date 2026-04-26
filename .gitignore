@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Large ambient audio files (too large for GitHub; download locally via yt-dlp)
+public/*_ambient.mp3
+public/*_ambient.webm
+
+# SQLite database (user data is local only)
+server/database.sqlite
