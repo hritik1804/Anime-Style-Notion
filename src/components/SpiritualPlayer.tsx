@@ -5,21 +5,21 @@ import './SpiritualPlayer.css';
 const TRACKS = [
   {
     id: 'lofi-1',
-    title: 'Soul Society Beats',
+    title: 'Soul Society Chill',
     artist: 'Gotei 13 Lo-Fi',
-    url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Ketsa/Raising_Frequency/Ketsa_-_08_-_Raising_Frequency.mp3'
+    url: 'https://archive.org/download/lofi-hip-hop-mix-2021/Lofi%20Hip%20Hop%20Mix%202021.mp3'
   },
   {
     id: 'lofi-2',
-    title: 'Hollow Night',
+    title: 'Hueco Mundo Night',
     artist: 'Arrancar Chill',
-    url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Ketsa/Raising_Frequency/Ketsa_-_04_-_Day_Trippin.mp3'
+    url: 'https://archive.org/download/lofi-beats-2021/Lofi%20Beats%202021.mp3'
   },
   {
     id: 'lofi-3',
-    title: 'Training Ground',
-    artist: 'Ichigo\'s Resolve',
-    url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Ketsa/Raising_Frequency/Ketsa_-_03_-_Solitude.mp3'
+    title: 'Training Resolve',
+    artist: 'Soul Reaper Lo-Fi',
+    url: 'https://archive.org/download/lofi-music-2021/Lofi%20Music%202021.mp3'
   }
 ];
 
