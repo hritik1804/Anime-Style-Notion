@@ -7,19 +7,19 @@ const TRACKS = [
     id: 'lofi-1',
     title: 'Soul Society Beats',
     artist: 'Gotei 13 Lo-Fi',
-    url: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808f3030e.mp3' // Chill Lo-Fi
+    url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Ketsa/Raising_Frequency/Ketsa_-_08_-_Raising_Frequency.mp3'
   },
   {
     id: 'lofi-2',
     title: 'Hollow Night',
     artist: 'Arrancar Chill',
-    url: 'https://cdn.pixabay.com/audio/2022/01/21/audio_31b5816991.mp3' // Ambient Dark
+    url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Ketsa/Raising_Frequency/Ketsa_-_04_-_Day_Trippin.mp3'
   },
   {
     id: 'lofi-3',
     title: 'Training Ground',
     artist: 'Ichigo\'s Resolve',
-    url: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a7315b.mp3' // Epic/Chill hybrid
+    url: 'https://files.freemusicarchive.org/storage-freemusicarchive-org/music/no_curator/Ketsa/Raising_Frequency/Ketsa_-_03_-_Solitude.mp3'
   }
 ];
 
