@@ -54,6 +54,20 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// --- DEBUG MODELS ROUTE (PUBLIC) ---
+app.get('/api/ai/list-models', async (req, res) => {
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'No API Key found on server.' });
+
+  try {
+    const response = await axios.get(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY.trim()}`);
+    res.json(response.data);
+  } catch (err) {
+    const apiError = err.response?.data?.error?.message || err.message;
+    res.status(500).json({ error: apiError });
+  }
+});
+
 // --- AI STABILITY HELPER (AXIOS) ---
 async function callGemini(prompt, apiKey) {
   const cleanKey = apiKey.trim();
