@@ -18,7 +18,7 @@ const io = new Server(server, {
 });
 
 const PORT = process.env.PORT || 5001;
-const JWT_SECRET = process.env.JWT_SECRET || 'anime-soul-society-secret-key';
+const JWT_SECRET = process.env.JWT_SECRET || 'anime-notion-ultra-secret-2024';
 
 app.use(cors());
 app.use(express.json());
@@ -53,12 +53,12 @@ const authenticateToken = (req, res, next) => {
 
 // --- AI STABILITY HELPER ---
 async function callGemini(prompt, apiKey) {
-  const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+  const models = ['gemini-1.5-flash', 'gemini-pro'];
   let lastError;
 
   for (const modelName of models) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,20 +86,6 @@ async function callGemini(prompt, apiKey) {
   }
   throw new Error(lastError || 'All spiritual channels are blocked (AI failed)');
 }
-
-// --- DEBUG MODELS ROUTE ---
-app.get('/api/ai/debug-models', async (req, res) => {
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'No API Key found on server.' });
-
-  try {
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
-    const data = await response.json();
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 // --- AI ENDPOINTS ---
 app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
