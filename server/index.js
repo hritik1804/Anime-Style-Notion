@@ -10,7 +10,7 @@ const pdf = require('pdf-parse');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { Server } = require('socket.io');
 const { initDb } = require('./db');
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
@@ -20,11 +20,6 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'anime-soul-society-secret-key';
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 app.use(cors());
 app.use(express.json());
@@ -62,7 +57,15 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
   const { content } = req.body;
   if (!content) return res.status(400).json({ error: 'No content provided' });
 
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'Gemini API Key is missing on the server!' });
+  }
+
   try {
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     const prompt = `You are the Zanpakuto Spirit, a tactical advisor for a Shinigami. 
     Summarize the following notes into a concise 'Mission Briefing'. 
     Use bullet points and a tactical tone. 
@@ -79,9 +82,17 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
 
 app.post('/api/ai/process-pdf', authenticateToken, upload.single('file'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  
+  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'Gemini API Key is missing on the server!' });
+  }
 
   try {
     const data = await pdf(req.file.buffer);
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     const prompt = `Analyze this Training Scroll (PDF). 
     Provide a tactical summary of its contents. 
     Extract the key techniques or information.
@@ -113,7 +124,6 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = crypto.randomUUID();
-    // Normalize username to lowercase
     await db.query('INSERT INTO users (id, username, password) VALUES ($1, $2, $3)', [userId, username.toLowerCase(), hashedPassword]);
     res.status(201).json({ message: 'User created' });
   } catch (err) {
@@ -124,7 +134,6 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
-  // Normalize login attempt to lowercase
   const result = await db.query('SELECT * FROM users WHERE username = $1', [username.toLowerCase()]);
   const user = result.rows[0];
 
