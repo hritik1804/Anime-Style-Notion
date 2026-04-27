@@ -7,7 +7,6 @@ const path = require('path');
 const http = require('http');
 const multer = require('multer');
 const pdf = require('pdf-parse');
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { Server } = require('socket.io');
 const { initDb } = require('./db');
 require('dotenv').config();
@@ -52,65 +51,84 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// --- AI STABILITY HELPER ---
+async function callGemini(prompt, apiKey) {
+  const models = ['gemini-1.5-flash', 'gemini-pro'];
+  let lastError;
+
+  for (const modelName of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        console.error(`Gemini API Error [${modelName}]:`, JSON.stringify(data, null, 2));
+        lastError = data.error?.message || `Status ${response.status}`;
+        continue; // Try next model
+      }
+
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (text) return text;
+      
+      console.warn(`Gemini [${modelName}] returned an empty response`);
+    } catch (err) {
+      console.error(`Network error calling ${modelName}:`, err.message);
+      lastError = err.message;
+    }
+  }
+  throw new Error(lastError || 'All spiritual channels are blocked (AI failed)');
+}
+
 // --- AI ENDPOINTS ---
 app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
   const { content } = req.body;
-  if (!content) return res.status(400).json({ error: 'No content provided' });
-
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'Gemini API Key is missing on the server!' });
-  }
+
+  if (!content) return res.status(400).json({ error: 'No content provided' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable.' });
 
   try {
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
     const prompt = `You are the Zanpakuto Spirit, a tactical advisor for a Shinigami. 
     Summarize the following notes into a concise 'Mission Briefing'. 
     Use bullet points and a tactical tone. 
     Notes: ${content}`;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    res.json({ summary: response.text() });
+    const summary = await callGemini(prompt, GEMINI_API_KEY);
+    res.json({ summary });
   } catch (err) {
-    console.error('AI Summarize Error:', err.message || err);
-    res.status(500).json({ error: `AI synchronization failed: ${err.message || 'Unknown error'}` });
+    console.error('Summarize Endpoint Error:', err.message);
+    res.status(500).json({ summary: "I am unable to channel spiritual energy at this moment. Please try again later." });
   }
 });
 
 app.post('/api/ai/process-pdf', authenticateToken, upload.single('file'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) {
-    return res.status(500).json({ error: 'Gemini API Key is missing on the server!' });
-  }
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable.' });
 
   try {
     const data = await pdf(req.file.buffer);
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
     const prompt = `Analyze this Training Scroll (PDF). 
     Provide a tactical summary of its contents. 
     Extract the key techniques or information.
-    Text: ${data.text.substring(0, 10000)}`;
+    Text: ${data.text.substring(0, 15000)}`;
 
-    const result = await model.generateContent(prompt);
-
-    if (!result || !result.response) {
-      throw new Error("Empty response from Gemini");
-    }
-    const text = result.response.text();
+    const summary = await callGemini(prompt, GEMINI_API_KEY);
     res.json({ 
-      summary: text,
+      summary,
       extractedText: data.text.substring(0, 500) + '...'
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to decipher the Training Scroll' });
+    console.error('Process PDF Error:', err.message);
+    res.status(500).json({ summary: "The Training Scroll is sealed by a powerful barrier (AI Error). I cannot read it right now." });
   }
 });
 
