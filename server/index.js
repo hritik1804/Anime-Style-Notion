@@ -72,8 +72,8 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
     const response = await result.response;
     res.json({ summary: response.text() });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'AI synchronization failed' });
+    console.error('AI Summarize Error:', err.message || err);
+    res.status(500).json({ error: `AI synchronization failed: ${err.message || 'Unknown error'}` });
   }
 });
 
