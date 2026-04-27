@@ -88,9 +88,9 @@ async function callGemini(prompt, apiKey) {
 }
 
 // --- DEBUG MODELS ROUTE ---
-app.get('/api/ai/debug-models', authenticateToken, async (req, res) => {
+app.get('/api/ai/debug-models', async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'No API Key' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'No API Key found on server.' });
 
   try {
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
