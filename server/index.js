@@ -53,12 +53,12 @@ const authenticateToken = (req, res, next) => {
 
 // --- AI STABILITY HELPER ---
 async function callGemini(prompt, apiKey) {
-  const models = ['gemini-1.5-flash', 'gemini-pro'];
+  const models = ['gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-pro'];
   let lastError;
 
   for (const modelName of models) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
