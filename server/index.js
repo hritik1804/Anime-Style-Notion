@@ -5,6 +5,9 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const path = require('path');
 const http = require('http');
+const multer = require('multer');
+const pdf = require('pdf-parse');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { Server } = require('socket.io');
 const { initDb } = require('./db');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
@@ -17,9 +20,17 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 5001;
 const JWT_SECRET = process.env.JWT_SECRET || 'anime-soul-society-secret-key';
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 app.use(cors());
 app.use(express.json());
+
+// Multer for PDF uploads
+const upload = multer({ storage: multer.memoryStorage() });
 
 let db;
 
@@ -46,6 +57,48 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
+// --- AI ENDPOINTS ---
+app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
+  const { content } = req.body;
+  if (!content) return res.status(400).json({ error: 'No content provided' });
+
+  try {
+    const prompt = `You are the Zanpakuto Spirit, a tactical advisor for a Shinigami. 
+    Summarize the following notes into a concise 'Mission Briefing'. 
+    Use bullet points and a tactical tone. 
+    Notes: ${content}`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    res.json({ summary: response.text() });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'AI synchronization failed' });
+  }
+});
+
+app.post('/api/ai/process-pdf', authenticateToken, upload.single('file'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+
+  try {
+    const data = await pdf(req.file.buffer);
+    const prompt = `Analyze this Training Scroll (PDF). 
+    Provide a tactical summary of its contents. 
+    Extract the key techniques or information.
+    Text: ${data.text.substring(0, 10000)}`;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    res.json({ 
+      summary: response.text(),
+      extractedText: data.text.substring(0, 500) + '...'
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to decipher the Training Scroll' });
+  }
+});
+
 // Socket logic
 io.on('connection', (socket) => {
   socket.on('join-room', (userId) => {
@@ -60,21 +113,32 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
     const userId = crypto.randomUUID();
-    await db.query('INSERT INTO users (id, username, password) VALUES ($1, $2, $3)', [userId, username, hashedPassword]);
+    // Normalize username to lowercase
+    await db.query('INSERT INTO users (id, username, password) VALUES ($1, $2, $3)', [userId, username.toLowerCase(), hashedPassword]);
     res.status(201).json({ message: 'User created' });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ error: 'Username already exists or server error' });
   }
 });
 
 app.post('/api/auth/login', async (req, res) => {
   const { username, password } = req.body;
-  const result = await db.query('SELECT * FROM users WHERE username = $1', [username]);
+  // Normalize login attempt to lowercase
+  const result = await db.query('SELECT * FROM users WHERE username = $1', [username.toLowerCase()]);
   const user = result.rows[0];
 
-  if (!user || !(await bcrypt.compare(password, user.password))) {
+  if (!user) {
+    console.log(`Login failed: User ${username} not found`);
     return res.status(401).json({ error: 'Invalid credentials' });
   }
+
+  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+  if (!isPasswordCorrect) {
+    console.log(`Login failed: Password mismatch for ${username}`);
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
   const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: '7d' });
   res.json({ token, username: user.username, themeId: user.themeId });
 });
