@@ -105,7 +105,10 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
     res.json({ summary });
   } catch (err) {
     console.error('Summarize Endpoint Error:', err.message);
-    res.status(500).json({ summary: "I am unable to channel spiritual energy at this moment. Please try again later." });
+    res.status(500).json({ 
+      summary: "I am unable to channel spiritual energy at this moment.",
+      debug_error: err.message 
+    });
   }
 });
 
