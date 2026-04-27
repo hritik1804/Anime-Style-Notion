@@ -54,24 +54,11 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- DEBUG MODELS ROUTE (PUBLIC) ---
-app.get('/api/ai/list-models', async (req, res) => {
-  const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'No API Key found on server.' });
-
-  try {
-    const response = await axios.get(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY.trim()}`);
-    res.json(response.data);
-  } catch (err) {
-    const apiError = err.response?.data?.error?.message || err.message;
-    res.status(500).json({ error: apiError });
-  }
-});
-
 // --- AI STABILITY HELPER (AXIOS) ---
 async function callGemini(prompt, apiKey) {
   const cleanKey = apiKey.trim();
-  const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
+  // Updated models based on your account's specific availability (2.5 & 2.0 Series)
+  const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-flash-latest', 'gemini-pro-latest'];
   let lastError;
 
   for (const modelName of models) {
@@ -93,7 +80,6 @@ async function callGemini(prompt, apiKey) {
       console.error(`Gemini [${modelName}] Error:`, apiError);
       lastError = apiError;
       
-      // If it's a 404, we try the next model. If it's 401/403, we stop (auth issue).
       if (err.response?.status === 401 || err.response?.status === 403) {
         throw new Error(`Authentication Error: ${apiError}`);
       }
@@ -108,7 +94,7 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
   if (!content) return res.status(400).json({ error: 'No content provided' });
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable. Check your server/.env file!' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable.' });
 
   try {
     const prompt = `You are the Zanpakuto Spirit, a tactical advisor for a Shinigami. 
@@ -130,7 +116,7 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
 app.post('/api/ai/process-pdf', authenticateToken, upload.single('file'), async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable. Check your server/.env file!' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable.' });
 
   try {
     const data = await pdf(req.file.buffer);
