@@ -64,7 +64,7 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
 
   try {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const prompt = `You are the Zanpakuto Spirit, a tactical advisor for a Shinigami. 
     Summarize the following notes into a concise 'Mission Briefing'. 
@@ -91,7 +91,7 @@ app.post('/api/ai/process-pdf', authenticateToken, upload.single('file'), async 
   try {
     const data = await pdf(req.file.buffer);
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
     const prompt = `Analyze this Training Scroll (PDF). 
     Provide a tactical summary of its contents. 
@@ -99,9 +99,13 @@ app.post('/api/ai/process-pdf', authenticateToken, upload.single('file'), async 
     Text: ${data.text.substring(0, 10000)}`;
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
+
+    if (!result || !result.response) {
+      throw new Error("Empty response from Gemini");
+    }
+    const text = result.response.text();
     res.json({ 
-      summary: response.text(),
+      summary: text,
       extractedText: data.text.substring(0, 500) + '...'
     });
   } catch (err) {
