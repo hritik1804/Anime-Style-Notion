@@ -15,7 +15,6 @@ export const AICompanion: React.FC<AICompanionProps> = ({ noteContent, onClose }
   const { token } = useAuth();
   const [summary, setSummary] = useState('');
   const [loading, setLoading] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
 
   const handleSummarize = async () => {
     setLoading(true);
@@ -37,7 +36,6 @@ export const AICompanion: React.FC<AICompanionProps> = ({ noteContent, onClose }
     const uploadedFile = e.target.files?.[0];
     if (!uploadedFile) return;
     
-    setFile(uploadedFile);
     setLoading(true);
     
     const formData = new FormData();
