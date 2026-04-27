@@ -4,13 +4,15 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Youtube from '@tiptap/extension-youtube';
 import { useNotes } from '../context/NotesContext';
-import { Share2, Globe, Lock, Copy, Check, Image as ImageIcon, Video } from 'lucide-react';
+import { Share2, Globe, Lock, Copy, Check, Image as ImageIcon, Video, Sparkles } from 'lucide-react';
+import { AICompanion } from './AICompanion';
 import './Editor.css';
 
 export const Editor: React.FC = () => {
   const { notes, activeNoteId, updateNote } = useNotes();
   const activeNote = notes.find((n) => n.id === activeNoteId);
-  const [copied, setCopied] = useState(false);
+   const [copied, setCopied] = useState(false);
+  const [showAI, setShowAI] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -98,6 +100,10 @@ export const Editor: React.FC = () => {
           <button className="toolbar-btn" onClick={addYoutubeVideo} title="Embed YouTube">
             <Video size={16} />
           </button>
+          <button className={`toolbar-btn ai-toggle ${showAI ? 'active' : ''}`} onClick={() => setShowAI(!showAI)} title="Zanpakuto AI">
+            <Sparkles size={16} />
+            <span>AI Advisor</span>
+          </button>
         </div>
 
         <div className="note-meta">
@@ -122,6 +128,12 @@ export const Editor: React.FC = () => {
         <div className="tiptap-wrapper">
           <EditorContent editor={editor} />
         </div>
+        {showAI && (
+          <AICompanion 
+            noteContent={activeNote.content} 
+            onClose={() => setShowAI(false)} 
+          />
+        )}
       </div>
     </div>
   );
