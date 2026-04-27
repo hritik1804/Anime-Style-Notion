@@ -7,19 +7,19 @@ const TRACKS = [
     id: 'lofi-1',
     title: 'Soul Society Chill',
     artist: 'Gotei 13 Lo-Fi',
-    url: 'https://archive.org/download/lofi-hip-hop-mix-2021/Lofi%20Hip%20Hop%20Mix%202021.mp3'
+    url: 'https://raw.githubusercontent.com/rafael-lua/lofi-player/main/music/1.mp3'
   },
   {
     id: 'lofi-2',
     title: 'Hueco Mundo Night',
     artist: 'Arrancar Chill',
-    url: 'https://archive.org/download/lofi-beats-2021/Lofi%20Beats%202021.mp3'
+    url: 'https://raw.githubusercontent.com/rafael-lua/lofi-player/main/music/2.mp3'
   },
   {
     id: 'lofi-3',
     title: 'Training Resolve',
     artist: 'Soul Reaper Lo-Fi',
-    url: 'https://archive.org/download/lofi-music-2021/Lofi%20Music%202021.mp3'
+    url: 'https://raw.githubusercontent.com/rafael-lua/lofi-player/main/music/3.mp3'
   }
 ];
 
