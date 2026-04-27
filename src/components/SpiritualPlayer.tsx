@@ -26,7 +26,7 @@ const TRACKS = [
 export const SpiritualPlayer: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [volume, setVolume] = useState(0.5);
+  const [volume] = useState(0.5);
   const [isMuted, setIsMuted] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   
