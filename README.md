@@ -1,73 +1,55 @@
-# React + TypeScript + Vite
+# ⚔️ Shinigami OS (Anime Style Notion)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![Vercel](https://img.shields.io/badge/Frontend-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
+[![Render](https://img.shields.io/badge/Backend-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
+[![Gemini](https://img.shields.io/badge/AI-Gemini_2.5-blue?style=for-the-badge&logo=google-gemini&logoColor=white)](https://ai.google.dev)
 
-Currently, two official plugins are available:
+A premium, anime-inspired workspace designed for Shinigami to chronicle their missions, train their spirits, and organize the Soul Society. Built with a focus on high-end aesthetics, dynamic animations, and AI-powered intelligence.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+![App Preview](https://raw.githubusercontent.com/hritik1804/Anime-Style-Notion/main/preview.png)
 
-## React Compiler
+## 🌌 Core Features
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🖋️ The Chronicles (Editor)
+- **Rich Text Experience**: Powered by TipTap for seamless note-taking.
+- **Multimodal Integration**: Embed Training Scrolls (PDFs), imagery, and YouTube scrolls directly into your notes.
+- **Public/Private Archives**: Toggle the visibility of your notes with a single click and share them with other Shinigami.
 
-## Expanding the ESLint configuration
+### 🤖 The Zanpakuto Spirit (AI Advisor)
+- **Mission Briefings**: Instant AI summarization of your notes into tactical mission briefings.
+- **Scroll Deciphering**: Upload Training Scrolls (PDFs) and let the spirit extract key techniques and knowledge using **Gemini 2.5 Flash**.
+- **Tactical Feedback**: AI-driven insights to help you organize your thoughts.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 📊 Spiritual Energy (Analytics)
+- **Activity Heatmap**: Visualize your productivity with a Github-style activity tracker.
+- **Rank Tracking**: Monitor your progress as you ascend through the ranks of the Gotei 13.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 🎭 Soul Resonace (Themes)
+- **Dynamic Backgrounds**: Switch between iconic characters (Aizen, Gojo, Madara, Rengoku, etc.) with custom-tailored color palettes and ambient styling.
+- **Glassmorphism UI**: A sleek, translucent interface that feels alive.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🛠️ Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Frontend**: React, Vite, TipTap, Lucide Icons, Framer Motion.
+- **Backend**: Node.js, Express, Socket.io (Real-time sync).
+- **Database**: Supabase (PostgreSQL) for permanent cloud persistence.
+- **AI**: Google Gemini 2.5 API (REST Integration).
+- **Deployment**: Vercel (Frontend) & Render (Backend).
+
+## 🚀 Deployment
+
+### Environment Variables
+To initialize your own Soul Society, you need the following in your `server/.env`:
+```env
+DATABASE_URL=your_supabase_url
+JWT_SECRET=your_secret
+GEMINI_API_KEY=your_google_ai_key
+PORT=5001
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 📜 License
+Licensed under the Soul Society Archives (MIT).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+---
+*Created with spiritual energy by [Hritik Ranjan](https://github.com/hritik1804)*
