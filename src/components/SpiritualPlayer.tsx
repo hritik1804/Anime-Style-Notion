@@ -7,19 +7,19 @@ const TRACKS = [
     id: 'lofi-1',
     title: 'Soul Society Chill',
     artist: 'Gotei 13 Lo-Fi',
-    url: 'https://raw.githubusercontent.com/rafael-lua/lofi-player/main/music/1.mp3'
+    url: 'https://github.com/Gisela-M-A/Lofi-Girl-Player/blob/main/music/Track-1.mp3?raw=true'
   },
   {
     id: 'lofi-2',
     title: 'Hueco Mundo Night',
     artist: 'Arrancar Chill',
-    url: 'https://raw.githubusercontent.com/rafael-lua/lofi-player/main/music/2.mp3'
+    url: 'https://github.com/Gisela-M-A/Lofi-Girl-Player/blob/main/music/Track-2.mp3?raw=true'
   },
   {
     id: 'lofi-3',
     title: 'Training Resolve',
     artist: 'Soul Reaper Lo-Fi',
-    url: 'https://raw.githubusercontent.com/rafael-lua/lofi-player/main/music/3.mp3'
+    url: 'https://github.com/Gisela-M-A/Lofi-Girl-Player/blob/main/music/Track-3.mp3?raw=true'
   }
 ];
 
