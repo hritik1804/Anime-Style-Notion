@@ -7,9 +7,12 @@ const path = require('path');
 const http = require('http');
 const multer = require('multer');
 const pdf = require('pdf-parse');
+const axios = require('axios');
 const { Server } = require('socket.io');
 const { initDb } = require('./db');
-require('dotenv').config();
+
+// Ensure dotenv looks in the correct server directory
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app = express();
 const server = http.createServer(app);
@@ -51,40 +54,35 @@ const authenticateToken = (req, res, next) => {
   });
 };
 
-// --- AI STABILITY HELPER ---
+// --- AI STABILITY HELPER (AXIOS) ---
 async function callGemini(prompt, apiKey) {
   const cleanKey = apiKey.trim();
-  const models = ['gemini-1.5-flash', 'gemini-pro'];
+  const models = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
   let lastError;
 
   for (const modelName of models) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${cleanKey}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        })
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+      const response = await axios.post(url, {
+        contents: [{ parts: [{ text: prompt }] }]
+      }, {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 20000
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        console.error(`Gemini API Error [${modelName}]:`, JSON.stringify(data, null, 2));
-        lastError = data.error?.message || `Status ${response.status}`;
-        continue; // Try next model
-      }
-
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const text = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (text) return text;
       
       console.warn(`Gemini [${modelName}] returned an empty response`);
     } catch (err) {
-      console.error(`Network error calling ${modelName}:`, err.message);
-      lastError = err.message;
+      const apiError = err.response?.data?.error?.message || err.message;
+      console.error(`Gemini [${modelName}] Error:`, apiError);
+      lastError = apiError;
+      
+      // If it's a 404, we try the next model. If it's 401/403, we stop (auth issue).
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        throw new Error(`Authentication Error: ${apiError}`);
+      }
     }
   }
   throw new Error(lastError || 'All spiritual channels are blocked (AI failed)');
@@ -96,7 +94,7 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
   if (!content) return res.status(400).json({ error: 'No content provided' });
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable.' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable. Check your server/.env file!' });
 
   try {
     const prompt = `You are the Zanpakuto Spirit, a tactical advisor for a Shinigami. 
@@ -118,7 +116,7 @@ app.post('/api/ai/summarize', authenticateToken, async (req, res) => {
 app.post('/api/ai/process-pdf', authenticateToken, upload.single('file'), async (req, res) => {
   const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable.' });
+  if (!GEMINI_API_KEY) return res.status(500).json({ error: 'Zanpakuto Spirit requires a GEMINI_API_KEY environment variable. Check your server/.env file!' });
 
   try {
     const data = await pdf(req.file.buffer);
