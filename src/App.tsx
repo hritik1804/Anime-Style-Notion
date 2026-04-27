@@ -10,6 +10,7 @@ import { Profile } from './components/Profile';
 import { Login } from './components/Login';
 import { SharedNote } from './components/SharedNote';
 import { CommandPalette } from './components/CommandPalette';
+import { SpiritualPlayer } from './components/SpiritualPlayer';
 
 type View = 'home' | 'editor' | 'profile' | 'shared';
 
@@ -60,6 +61,7 @@ const MainApp: React.FC = () => {
       {currentView === 'home' && <Home />}
       {currentView === 'profile' && <Profile />}
       <CommandPalette />
+      <SpiritualPlayer />
     </div>
   );
 };
